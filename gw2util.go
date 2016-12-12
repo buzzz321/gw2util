@@ -62,9 +62,8 @@ func getCrafting(chars *gabs.Container, name string) ([]Crafting) {
 	return retVal
 }
 
-func main() {
-	gw2 := Gw2Api{"https://api.guildwars2.com/v2/", getKey("../../../gw2/test.key")}
-	Url := fmt.Sprintf("%s%s%s%s", gw2.BaseUrl, "characters?access_token=", gw2.Key, "&page=0")
+func queryData(gw2 Gw2Api, command string) ([] byte) {
+	Url := fmt.Sprintf("%s%s%s%s%s", gw2.BaseUrl, command, "?access_token=", gw2.Key, "&page=0")
 	tr := &http.Transport{
 		DisableCompression: true,
 	}
@@ -72,7 +71,7 @@ func main() {
 	req, err := http.NewRequest("GET", Url, nil)
 	if err != nil {
 		log.Fatal("NewRequest: ", err)
-		return
+		return nil
 	}
 
 	client := &http.Client{Transport: tr}
@@ -80,7 +79,7 @@ func main() {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal("Do: ", err)
-		return
+		return nil
 	}
 
 	// Callers should close resp.Body
@@ -88,8 +87,13 @@ func main() {
 	// Defer the closing of the body
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
+	return body
+}
+func main() {
+	gw2 := Gw2Api{"https://api.guildwars2.com/v2/", getKey("../../../gw2/test.key")}
 
-	jsonParsed, err := gabs.ParseJSON(body)
+	body := queryData(gw2, "characters")
+	jsonParsed, _ := gabs.ParseJSON(body)
 	craftings := getCrafting(jsonParsed, "Notamik")
 	log.Println(craftings[0])
 
