@@ -36,7 +36,7 @@ func getKey(filename string) string {
 
 func getCrafting(chars *gabs.Container, name string) ([]Crafting) {
 	size, _ := chars.ArrayCount("name")
-	var retVal = make([]Crafting, 10)
+	var retVal = make([]Crafting, 0)
 
 	for index := 0; index < size; index++ {
 		if strings.Contains(chars.Index(index).Search("name").String(), name) {
@@ -52,9 +52,10 @@ func getCrafting(chars *gabs.Container, name string) ([]Crafting) {
 				return retVal
 			}
 			for n := 0; n < amountD; n++ {
-				retVal[n].Discipline = discipline.Index(n).String()
-				retVal[n].Rating, _ = strconv.ParseInt(rating.Index(n).String(), 10, 64)
-				retVal[n].Active, _ = strconv.ParseBool(active.Index(n).String())
+				Discipline := discipline.Index(n).String()
+				Rating, _ := strconv.ParseInt(rating.Index(n).String(), 10, 64)
+				Active, _ := strconv.ParseBool(active.Index(n).String())
+				retVal = append(retVal, Crafting{Discipline, Rating, Active})
 			}
 		}
 	}
