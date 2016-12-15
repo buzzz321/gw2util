@@ -12,7 +12,7 @@ import (
 
 type Gw2Api struct {
 	BaseUrl string
-	Key 	string
+	Key     string
 }
 type Crafting struct {
 	Discipline string
@@ -63,8 +63,52 @@ func getCrafting(chars *gabs.Container, name string) ([]Crafting) {
 	return retVal
 }
 
-func queryData(gw2 Gw2Api, command string) ([] byte) {
-	Url := fmt.Sprintf("%s%s%s%s%s", gw2.BaseUrl, command, "?access_token=", gw2.Key, "&page=0")
+func flattenIdArray(objectOfIdArrays *gabs.Container) ([]uint64) {
+	var (
+		retVal  []uint64
+		tmpArr []uint64
+	)
+
+	arrayOfIdArrays, _ := objectOfIdArrays.Children()
+
+	for _, IdArray := range arrayOfIdArrays {
+		Ids, _ := IdArray.Children()
+		length := len(IdArray.Data().([] interface{}))
+		tmpArr = make([]uint64, length)
+		for index, item := range Ids {
+			tmpArr[index] = uint64(item.Data().(float64))
+		}
+		retVal = append(retVal, tmpArr...)
+	}
+	return retVal
+}
+
+func arrayToString(a []uint64, delim string) string {
+	return strings.Trim(strings.Replace(fmt.Sprint(a), " ", delim, -1), "[]")
+}
+
+func getItems(gw2 Gw2Api, Ids [] uint64) (*gabs.Container) {
+	strIds := arrayToString(Ids, ",")
+	body := queryAnet(gw2, "items", "ids", strIds)
+	jsonParsed, _ := gabs.ParseJSON(body)
+	return jsonParsed
+}
+
+func getItemIdsFromBags(chars *gabs.Container, charName string) ([]uint64) {
+	var retVal []uint64
+	children, _ := chars.Children()
+	for _, char := range children {
+		if strings.Contains(strings.ToLower(char.S("name").String()), charName) {
+			items := char.Path("bags.inventory.id")
+			//fmt.Println(items)
+			retVal = append(retVal, flattenIdArray(items)...)
+			//fmt.Println((retVal))
+		}
+	}
+	return retVal
+}
+
+func doRestQuery(Url string) ([] byte) {
 	tr := &http.Transport{
 		DisableCompression: true,
 	}
@@ -88,15 +132,27 @@ func queryData(gw2 Gw2Api, command string) ([] byte) {
 	// Defer the closing of the body
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
+
 	return body
+}
+func queryAnet(gw2 Gw2Api, command string, paramName string, paramValue string) ([] byte) {
+	Url := fmt.Sprintf("%s%s%s%s%s%s", gw2.BaseUrl, command, "?", paramName, "=", paramValue)
+	fmt.Println("Url: ", Url)
+	return doRestQuery(Url)
+}
+func queryAnetAuth(gw2 Gw2Api, command string) ([] byte) {
+	Url := fmt.Sprintf("%s%s%s%s%s", gw2.BaseUrl, command, "?access_token=", gw2.Key, "&page=0")
+
+	return doRestQuery(Url)
 }
 func main() {
 	gw2 := Gw2Api{"https://api.guildwars2.com/v2/", getKey("../../../gw2/test.key")}
 
-	body := queryData(gw2, "characters")
+	body := queryAnetAuth(gw2, "characters")
 	jsonParsed, _ := gabs.ParseJSON(body)
+	//fmt.Println(jsonParsed.StringIndent("","\t"))
 	craftings := getCrafting(jsonParsed, "Notamik")
 	log.Println(craftings[0])
-
+	getItems(gw2, getItemIdsFromBags(jsonParsed, "nomitik"))
 	return
 }
