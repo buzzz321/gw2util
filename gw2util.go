@@ -2,25 +2,47 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"strings"
-	"net/http"
-	"log"
 	"github.com/Jeffail/gabs"
+	"io/ioutil"
+	"log"
+	"net/http"
 	"strconv"
+	"strings"
 )
 
 type Gw2Api struct {
 	BaseUrl string
 	Key     string
 }
-type Crafting struct {
+type GW2Crafting struct {
 	Discipline string
 	Rating     int64
 	Active     bool
 }
 
-func (b Crafting) String() string {
+type GW2Item struct {
+	ChatLink     string `json:"chat_link"`
+	Details      struct {
+			     ApplyCount  int `json:"apply_count"`
+			     Description string `json:"description"`
+			     DurationMs  int `json:"duration_ms"`
+			     Icon        string `json:"icon"`
+			     Name        string `json:"name"`
+			     Type        string `json:"type"`
+		     } `json:"details"`
+	Flags        []string `json:"flags"`
+	GameTypes    []string `json:"game_types"`
+	Icon         string `json:"icon"`
+	ID           int `json:"id"`
+	Level        int `json:"level"`
+	Name         string `json:"name"`
+	Rarity       string `json:"rarity"`
+	Restrictions []interface{} `json:"restrictions"`
+	Type         string `json:"type"`
+	VendorValue  int `json:"vendor_value"`
+}
+
+func (b GW2Crafting) String() string {
 	return fmt.Sprintf("\nDiscipline: %s\nRating %d \nActive %t\n", b.Discipline, b.Rating, b.Active)
 }
 
@@ -34,9 +56,33 @@ func getKey(filename string) string {
 	return strings.Trim(string(buff), "\n ")
 }
 
-func getCrafting(chars *gabs.Container, name string) ([]Crafting) {
+func arrayToString(a []uint64, delim string) string {
+	return strings.Trim(strings.Replace(fmt.Sprint(a), " ", delim, -1), "[]")
+}
+
+func flattenIdArray(objectOfIdArrays *gabs.Container) []uint64 {
+	var (
+		retVal []uint64
+		tmpArr []uint64
+	)
+
+	arrayOfIdArrays, _ := objectOfIdArrays.Children()
+
+	for _, IdArray := range arrayOfIdArrays {
+		Ids, _ := IdArray.Children()
+		length := len(IdArray.Data().([]interface{}))
+		tmpArr = make([]uint64, length)
+		for index, item := range Ids {
+			tmpArr[index] = uint64(item.Data().(float64))
+		}
+		retVal = append(retVal, tmpArr...)
+	}
+	return retVal
+}
+
+func getCrafting(chars *gabs.Container, name string) []GW2Crafting {
 	size, _ := chars.ArrayCount("name")
-	var retVal = make([]Crafting, 0)
+	var retVal = make([]GW2Crafting, 0)
 
 	for index := 0; index < size; index++ {
 		if strings.Contains(chars.Index(index).Search("name").String(), name) {
@@ -48,14 +94,14 @@ func getCrafting(chars *gabs.Container, name string) ([]Crafting) {
 			amountR, _ := crafts.ArrayCount("rating")
 			amountA, _ := crafts.ArrayCount("active")
 
-			if ( (amountD != amountR) && (amountD != amountA)) {
+			if (amountD != amountR) && (amountD != amountA) {
 				return retVal
 			}
 			for n := 0; n < amountD; n++ {
 				Discipline := discipline.Index(n).String()
 				Rating, _ := strconv.ParseInt(rating.Index(n).String(), 10, 64)
 				Active, _ := strconv.ParseBool(active.Index(n).String())
-				retVal = append(retVal, Crafting{Discipline, Rating, Active})
+				retVal = append(retVal, GW2Crafting{Discipline, Rating, Active})
 			}
 		}
 	}
@@ -63,38 +109,29 @@ func getCrafting(chars *gabs.Container, name string) ([]Crafting) {
 	return retVal
 }
 
-func flattenIdArray(objectOfIdArrays *gabs.Container) ([]uint64) {
-	var (
-		retVal  []uint64
-		tmpArr []uint64
-	)
+func findItem(itemArr *gabs.Container, itemName string) ([]*gabs.Container) {
+	var retVal []*gabs.Container
+	items, _ := itemArr.Children()
+	for _, item := range items {
+		//fmt.Println("details:" , item.Path("details.type").String())
 
-	arrayOfIdArrays, _ := objectOfIdArrays.Children()
-
-	for _, IdArray := range arrayOfIdArrays {
-		Ids, _ := IdArray.Children()
-		length := len(IdArray.Data().([] interface{}))
-		tmpArr = make([]uint64, length)
-		for index, item := range Ids {
-			tmpArr[index] = uint64(item.Data().(float64))
+		if strings.Contains(strings.ToLower(item.Search("name").String()), strings.ToLower(itemName)) ||
+			strings.Contains(strings.ToLower(item.Path("details.type").String()), strings.ToLower(itemName)) {
+			retVal = append(retVal, item)
+			fmt.Println(item.StringIndent("", "\t"))
 		}
-		retVal = append(retVal, tmpArr...)
 	}
 	return retVal
 }
 
-func arrayToString(a []uint64, delim string) string {
-	return strings.Trim(strings.Replace(fmt.Sprint(a), " ", delim, -1), "[]")
-}
-
-func getItems(gw2 Gw2Api, Ids [] uint64) (*gabs.Container) {
+func getItems(gw2 Gw2Api, Ids []uint64) *gabs.Container {
 	strIds := arrayToString(Ids, ",")
 	body := queryAnet(gw2, "items", "ids", strIds)
 	jsonParsed, _ := gabs.ParseJSON(body)
 	return jsonParsed
 }
 
-func getItemIdsFromBags(chars *gabs.Container, charName string) ([]uint64) {
+func getItemIdsFromBags(chars *gabs.Container, charName string) []uint64 {
 	var retVal []uint64
 	children, _ := chars.Children()
 	for _, char := range children {
@@ -108,7 +145,7 @@ func getItemIdsFromBags(chars *gabs.Container, charName string) ([]uint64) {
 	return retVal
 }
 
-func doRestQuery(Url string) ([] byte) {
+func doRestQuery(Url string) []byte {
 	tr := &http.Transport{
 		DisableCompression: true,
 	}
@@ -135,16 +172,19 @@ func doRestQuery(Url string) ([] byte) {
 
 	return body
 }
-func queryAnet(gw2 Gw2Api, command string, paramName string, paramValue string) ([] byte) {
+
+func queryAnet(gw2 Gw2Api, command string, paramName string, paramValue string) []byte {
 	Url := fmt.Sprintf("%s%s%s%s%s%s", gw2.BaseUrl, command, "?", paramName, "=", paramValue)
 	fmt.Println("Url: ", Url)
 	return doRestQuery(Url)
 }
-func queryAnetAuth(gw2 Gw2Api, command string) ([] byte) {
+
+func queryAnetAuth(gw2 Gw2Api, command string) []byte {
 	Url := fmt.Sprintf("%s%s%s%s%s", gw2.BaseUrl, command, "?access_token=", gw2.Key, "&page=0")
 
 	return doRestQuery(Url)
 }
+
 func main() {
 	gw2 := Gw2Api{"https://api.guildwars2.com/v2/", getKey("../../../gw2/test.key")}
 
@@ -153,6 +193,7 @@ func main() {
 	//fmt.Println(jsonParsed.StringIndent("","\t"))
 	craftings := getCrafting(jsonParsed, "Notamik")
 	log.Println(craftings[0])
-	getItems(gw2, getItemIdsFromBags(jsonParsed, "nomitik"))
+	items := getItems(gw2, getItemIdsFromBags(jsonParsed, "nomitik"))
+	findItem(items, "food")
 	return
 }
