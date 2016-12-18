@@ -6,6 +6,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"encoding/json"
 )
 
 type Gw2Api struct {
@@ -42,16 +43,23 @@ func getCrafting(chars *gabs.Container, name string) []GW2Crafting {
 	return retVal
 }
 
-func findItem(itemArr *gabs.Container, itemName string) ([]*gabs.Container) {
-	var retVal []*gabs.Container
+func findItem(itemArr *gabs.Container, itemName string) ([]*GW2Item) {
+	var retVal []*GW2Item
 	items, _ := itemArr.Children()
-	for _, item := range items {
-		//fmt.Println("details:" , item.Path("details.type").String())
 
+	for _, item := range items {
 		if strings.Contains(strings.ToLower(item.Search("name").String()), strings.ToLower(itemName)) ||
 			strings.Contains(strings.ToLower(item.Path("details.type").String()), strings.ToLower(itemName)) {
-			retVal = append(retVal, item)
-			fmt.Println(item.StringIndent("", "\t"))
+			//fmt.Println(item.StringIndent("", "\t"))
+			var gwItem GW2Item
+			dec := json.NewDecoder(strings.NewReader(item.String()))
+			dec.UseNumber()
+			err := dec.Decode(&gwItem)
+			if err != nil {
+				fmt.Println("Error during conversion ", err)
+			} else {
+				retVal = append(retVal, &gwItem)
+			}
 		}
 	}
 	return retVal
@@ -87,6 +95,6 @@ func main() {
 	craftings := getCrafting(jsonParsed, "Notamik")
 	log.Println(craftings[0])
 	items := getItems(gw2, getItemIdsFromBags(jsonParsed, "nomitik"))
-	findItem(items, "food")
+	fmt.Println(findItem(items, "food"))
 	return
 }

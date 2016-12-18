@@ -20,7 +20,7 @@ type GW2Item struct {
 	Details      struct {
 			     ApplyCount  int `json:"apply_count"`
 			     Description string `json:"description"`
-			     DurationMs  int `json:"duration_ms"`
+			     DurationMs  float64 `json:"duration_ms"`
 			     Icon        string `json:"icon"`
 			     Name        string `json:"name"`
 			     Type        string `json:"type"`
@@ -32,7 +32,7 @@ type GW2Item struct {
 	Level        int `json:"level"`
 	Name         string `json:"name"`
 	Rarity       string `json:"rarity"`
-	Restrictions []interface{} `json:"restrictions"`
+	Restrictions []string `json:"restrictions"`
 	Type         string `json:"type"`
 	VendorValue  int `json:"vendor_value"`
 }
@@ -41,6 +41,9 @@ func (b GW2Crafting) String() string {
 	return fmt.Sprintf("\nDiscipline: %s\nRating %d \nActive %t\n", b.Discipline, b.Rating, b.Active)
 }
 
+func (b GW2Item) String() string {
+	return fmt.Sprintf("\n Name: %s\n Type: %s \nDetail.Name: %s\n", b.Name, b.Type, b.Details.Name)
+}
 func getKey(filename string) string {
 	buff, err := ioutil.ReadFile(filename) // just pass the file name
 	if err != nil {
