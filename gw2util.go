@@ -1,12 +1,12 @@
-package main
+package gw2util
 
 import (
 	"fmt"
 	"github.com/Jeffail/gabs"
-	"log"
 	"strconv"
 	"strings"
 	"encoding/json"
+	"log"
 )
 
 type Gw2Api struct {
@@ -43,7 +43,13 @@ func getCrafting(chars *gabs.Container, name string) []GW2Crafting {
 	return retVal
 }
 
-func findItem(itemArr *gabs.Container, itemName string) ([]*GW2Item) {
+func GetCrafting(gw2 Gw2Api, name string) []GW2Crafting {
+	body := QueryAnetAuth(gw2, "characters")
+	jsonParsed, _ := gabs.ParseJSON(body)
+	return getCrafting(jsonParsed, name)
+}
+
+func FindItem(itemArr *gabs.Container, itemName string) ([]*GW2Item) {
 	var retVal []*GW2Item
 	items, _ := itemArr.Children()
 
@@ -65,14 +71,14 @@ func findItem(itemArr *gabs.Container, itemName string) ([]*GW2Item) {
 	return retVal
 }
 
-func getItems(gw2 Gw2Api, Ids []uint64) *gabs.Container {
+func GetItems(gw2 Gw2Api, Ids []uint64) *gabs.Container {
 	strIds := arrayToString(Ids, ",")
-	body := queryAnet(gw2, "items", "ids", strIds)
+	body := QueryAnet(gw2, "items", "ids", strIds)
 	jsonParsed, _ := gabs.ParseJSON(body)
 	return jsonParsed
 }
 
-func getItemIdsFromBags(chars *gabs.Container, charName string) []uint64 {
+func GetItemIdsFromBags(chars *gabs.Container, charName string) []uint64 {
 	var retVal []uint64
 	children, _ := chars.Children()
 	for _, char := range children {
@@ -87,14 +93,14 @@ func getItemIdsFromBags(chars *gabs.Container, charName string) []uint64 {
 }
 
 func main() {
-	gw2 := Gw2Api{"https://api.guildwars2.com/v2/", getKey("../../../gw2/test.key")}
+	gw2 := Gw2Api{"https://api.guildwars2.com/v2/", GetKey("../../../gw2/test.key")}
 
-	body := queryAnetAuth(gw2, "characters")
+	body := QueryAnetAuth(gw2, "characters")
 	jsonParsed, _ := gabs.ParseJSON(body)
 	//fmt.Println(jsonParsed.StringIndent("","\t"))
 	craftings := getCrafting(jsonParsed, "Notamik")
 	log.Println(craftings[0])
-	items := getItems(gw2, getItemIdsFromBags(jsonParsed, "nomitik"))
-	fmt.Println(findItem(items, "food"))
+	items := GetItems(gw2, GetItemIdsFromBags(jsonParsed, "nomitik"))
+	fmt.Println(FindItem(items, "food"))
 	return
 }

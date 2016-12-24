@@ -1,4 +1,4 @@
-package main
+package gw2util
 
 import (
 	"github.com/Jeffail/gabs"
@@ -44,7 +44,7 @@ func (b GW2Crafting) String() string {
 func (b GW2Item) String() string {
 	return fmt.Sprintf("\n Name: %s\n Type: %s \nDetail.Name: %s\n", b.Name, b.Type, b.Details.Name)
 }
-func getKey(filename string) string {
+func GetKey(filename string) string {
 	buff, err := ioutil.ReadFile(filename) // just pass the file name
 	if err != nil {
 		fmt.Print(err)
@@ -106,13 +106,13 @@ func doRestQuery(Url string) []byte {
 	return body
 }
 
-func queryAnet(gw2 Gw2Api, command string, paramName string, paramValue string) []byte {
+func QueryAnet(gw2 Gw2Api, command string, paramName string, paramValue string) []byte {
 	Url := fmt.Sprintf("%s%s%s%s%s%s", gw2.BaseUrl, command, "?", paramName, "=", paramValue)
 	fmt.Println("Url: ", Url)
 	return doRestQuery(Url)
 }
 
-func queryAnetAuth(gw2 Gw2Api, command string) []byte {
+func QueryAnetAuth(gw2 Gw2Api, command string) []byte {
 	Url := fmt.Sprintf("%s%s%s%s%s", gw2.BaseUrl, command, "?access_token=", gw2.Key, "&page=0")
 
 	return doRestQuery(Url)
