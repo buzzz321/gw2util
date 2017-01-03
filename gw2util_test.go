@@ -1,0 +1,43 @@
+package gw2util
+
+import (
+	"fmt"
+	"github.com/Jeffail/gabs"
+	"testing"
+)
+
+func TestGetCharacterNames(t *testing.T) {
+	gw2 := Gw2Api{"https://api.guildwars2.com/v2/", GetKey("../../../gw2/test.key")}
+
+	body := QueryAnetAuth(gw2, "characters")
+	jsonParsed, _ := gabs.ParseJSON(body)
+	chars := getCharacterNames(jsonParsed)
+
+	fmt.Println(chars)
+	/* some random test..
+	t.Errorf("...")
+
+	*/
+}
+func TestSetUserData(t *testing.T) {
+	res := SaveUserData(UserDataSlice{UserData{"Chatter", "Gamer", "ASDFGHJKL"}})
+	if res != "" {
+		t.Errorf(res)
+	}
+	data := ReadUserData()
+	if data[0].GameId != "Chatter" {
+		t.Errorf("User not saved gameId = %s", data[0].GameId)
+	}
+	data = append(data, UserData{"Chatter2", "Gamer2", "2ASDFGHJKL"})
+	res = SaveUserData(data)
+	data = ReadUserData()
+	if data[0].GameId != "Chatter" {
+		t.Errorf("User not saved gameId = %s", data[0].GameId)
+	}
+	if data[1].GameId != "Chatter2" {
+		t.Errorf("User not saved expected Chatter2 got %s", data[1].GameId)
+	}
+	if res != "" {
+		t.Errorf(res)
+	}
+}

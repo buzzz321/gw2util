@@ -1,12 +1,12 @@
 package gw2util
 
 import (
-	"github.com/Jeffail/gabs"
 	"fmt"
+	"github.com/Jeffail/gabs"
 	"io/ioutil"
-	"strings"
-	"net/http"
 	"log"
+	"net/http"
+	"strings"
 )
 
 type GW2Crafting struct {
@@ -18,23 +18,23 @@ type GW2Crafting struct {
 type GW2Item struct {
 	ChatLink     string `json:"chat_link"`
 	Details      struct {
-			     ApplyCount  int `json:"apply_count"`
-			     Description string `json:"description"`
+			     ApplyCount  int     `json:"apply_count"`
+			     Description string  `json:"description"`
 			     DurationMs  float64 `json:"duration_ms"`
-			     Icon        string `json:"icon"`
-			     Name        string `json:"name"`
-			     Type        string `json:"type"`
+			     Icon        string  `json:"icon"`
+			     Name        string  `json:"name"`
+			     Type        string  `json:"type"`
 		     } `json:"details"`
 	Flags        []string `json:"flags"`
 	GameTypes    []string `json:"game_types"`
-	Icon         string `json:"icon"`
-	ID           int `json:"id"`
-	Level        int `json:"level"`
-	Name         string `json:"name"`
-	Rarity       string `json:"rarity"`
+	Icon         string   `json:"icon"`
+	ID           int      `json:"id"`
+	Level        int      `json:"level"`
+	Name         string   `json:"name"`
+	Rarity       string   `json:"rarity"`
 	Restrictions []string `json:"restrictions"`
-	Type         string `json:"type"`
-	VendorValue  int `json:"vendor_value"`
+	Type         string   `json:"type"`
+	VendorValue  int      `json:"vendor_value"`
 }
 
 func (b GW2Crafting) String() string {
@@ -117,4 +117,3 @@ func QueryAnetAuth(gw2 Gw2Api, command string) []byte {
 
 	return doRestQuery(Url)
 }
-

@@ -1,17 +1,41 @@
 package gw2util
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/Jeffail/gabs"
+	"io/ioutil"
 	"strconv"
 	"strings"
-	"encoding/json"
-	"log"
+
+	"github.com/Jeffail/gabs"
 )
 
 type Gw2Api struct {
 	BaseUrl string
 	Key     string
+}
+
+type UserData struct {
+	GameId   string
+	ChatName string
+	Key      string
+}
+
+type UserDataSlice []UserData
+
+func (b UserDataSlice) Update(user UserData) UserDataSlice {
+	found := false
+	for _, item := range b {
+		if item.ChatName == user.ChatName {
+			item = user
+			found = true
+		}
+	}
+	if !found {
+		b = append(b, user)
+	}
+
+	return b
 }
 
 func getCrafting(chars *gabs.Container, name string) []GW2Crafting {
@@ -49,7 +73,8 @@ func GetCrafting(gw2 Gw2Api, name string) []GW2Crafting {
 	return getCrafting(jsonParsed, name)
 }
 
-func FindItem(itemArr *gabs.Container, itemName string) ([]*GW2Item) {
+// Tries to find a guild wars 2 item from item name or item detail.type
+func FindItem(itemArr *gabs.Container, itemName string) []*GW2Item {
 	var retVal []*GW2Item
 	items, _ := itemArr.Children()
 
@@ -71,6 +96,7 @@ func FindItem(itemArr *gabs.Container, itemName string) ([]*GW2Item) {
 	return retVal
 }
 
+// Query the guild wars 2 json api for the items thsi character has in its bags.
 func GetItems(gw2 Gw2Api, Ids []uint64) *gabs.Container {
 	strIds := arrayToString(Ids, ",")
 	body := QueryAnet(gw2, "items", "ids", strIds)
@@ -78,6 +104,7 @@ func GetItems(gw2 Gw2Api, Ids []uint64) *gabs.Container {
 	return jsonParsed
 }
 
+// Extract all items from the json blob
 func GetItemIdsFromBags(chars *gabs.Container, charName string) []uint64 {
 	var retVal []uint64
 	children, _ := chars.Children()
@@ -92,11 +119,61 @@ func GetItemIdsFromBags(chars *gabs.Container, charName string) []uint64 {
 	return retVal
 }
 
+func getCharacterNames(chars *gabs.Container) []string {
+	var retVal []string
+	children, _ := chars.Search("name").Children()
+
+	for _, char := range children {
+		retVal = append(retVal, strings.Trim(char.String(), "\""))
+	}
+	return retVal
+}
+
+func GetCharacterNames(gw2 Gw2Api) []string {
+
+	body := QueryAnetAuth(gw2, "characters")
+	jsonParsed, _ := gabs.ParseJSON(body)
+	return getCharacterNames(jsonParsed)
+}
+
+func ReadUserData() UserDataSlice {
+	var retVal UserDataSlice
+
+	buff, err := ioutil.ReadFile("data.dat")
+	if err != nil {
+		fmt.Print(err)
+		return nil
+	}
+	err = json.Unmarshal(buff, &retVal)
+	if err != nil {
+		fmt.Print(err)
+		return nil
+	}
+
+	return retVal
+}
+
+func SaveUserData(userData UserDataSlice) string {
+
+	userJson, err := json.Marshal(userData)
+	if err != nil {
+		fmt.Print(err)
+		return "Can't marshall data"
+	}
+	err = ioutil.WriteFile("data.dat", userJson, 0600) // just pass the file name
+	if err != nil {
+		fmt.Print(err)
+		return "Can't write to file"
+	}
+	return ""
+}
+/*
 func main() {
 	gw2 := Gw2Api{"https://api.guildwars2.com/v2/", GetKey("../../../gw2/test.key")}
 
 	body := QueryAnetAuth(gw2, "characters")
 	jsonParsed, _ := gabs.ParseJSON(body)
+	getCharacterNames(jsonParsed)
 	//fmt.Println(jsonParsed.StringIndent("","\t"))
 	craftings := getCrafting(jsonParsed, "Notamik")
 	log.Println(craftings[0])
@@ -104,3 +181,4 @@ func main() {
 	fmt.Println(FindItem(items, "food"))
 	return
 }
+*/
