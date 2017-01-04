@@ -136,10 +136,10 @@ func GetCharacterNames(gw2 Gw2Api) []string {
 	return getCharacterNames(jsonParsed)
 }
 
-func ReadUserData() UserDataSlice {
+func ReadUserData(filename string) UserDataSlice {
 	var retVal UserDataSlice
 
-	buff, err := ioutil.ReadFile("data.dat")
+	buff, err := ioutil.ReadFile(filename)
 	if err != nil {
 		fmt.Print(err)
 		return nil
@@ -166,6 +166,16 @@ func SaveUserData(userData UserDataSlice) string {
 		return "Can't write to file"
 	}
 	return ""
+}
+
+func GetUserData(users UserDataSlice, gameId string) (UserData) {
+	for _, user := range users {
+		if user.GameId == gameId {
+			return user
+		}
+	}
+
+	return UserData{"", "", ""}
 }
 /*
 func main() {

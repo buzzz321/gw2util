@@ -24,13 +24,14 @@ func TestSetUserData(t *testing.T) {
 	if res != "" {
 		t.Errorf(res)
 	}
-	data := ReadUserData()
+	filename := "data.dat"
+	data := ReadUserData(filename)
 	if data[0].GameId != "Chatter" {
 		t.Errorf("User not saved gameId = %s", data[0].GameId)
 	}
 	data = append(data, UserData{"Chatter2", "Gamer2", "2ASDFGHJKL"})
 	res = SaveUserData(data)
-	data = ReadUserData()
+	data = ReadUserData(filename)
 	if data[0].GameId != "Chatter" {
 		t.Errorf("User not saved gameId = %s", data[0].GameId)
 	}
@@ -39,5 +40,18 @@ func TestSetUserData(t *testing.T) {
 	}
 	if res != "" {
 		t.Errorf(res)
+	}
+}
+
+func TestGetUserData(t *testing.T) {
+	testData := UserDataSlice{UserData{GameId: "Chatter", ChatName:"Gamer", Key:"ASDFGHJKL"}, UserData{GameId:"Chatter2", ChatName:"Gamer2", Key:"ZXCVBN"}}
+
+	test1 := GetUserData(testData, "Chatter2")
+	if test1.ChatName != "Gamer2" {
+		t.Errorf("didnt find user expected Gamer2 got = %s", test1.ChatName)
+	}
+	test1 = GetUserData(testData, "Chatter")
+	if test1.ChatName != "Gamer" {
+		t.Errorf("didnt find user expected Gamer got = %s", test1.ChatName)
 	}
 }
