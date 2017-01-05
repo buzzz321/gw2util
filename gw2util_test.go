@@ -44,14 +44,19 @@ func TestSetUserData(t *testing.T) {
 }
 
 func TestGetUserData(t *testing.T) {
-	testData := UserDataSlice{UserData{GameId: "Chatter", ChatName:"Gamer", Key:"ASDFGHJKL"}, UserData{GameId:"Chatter2", ChatName:"Gamer2", Key:"ZXCVBN"}}
+	testData := UserDataSlice{UserData{GameId: "Chatter", ChatName: "Gamer", Key: "ASDFGHJKL"}, UserData{GameId: "Chatter2", ChatName: "Gamer2", Key: "ZXCVBN"}}
 
-	test1 := GetUserData(testData, "Chatter2")
-	if test1.ChatName != "Gamer2" {
-		t.Errorf("didnt find user expected Gamer2 got = %s", test1.ChatName)
+	test1 := GetUserData(testData, "Gamer2")
+	if test1.GameId != "Chatter2" {
+		t.Errorf("didnt find user expected Chatter2 got = %s", test1.ChatName)
 	}
-	test1 = GetUserData(testData, "Chatter")
-	if test1.ChatName != "Gamer" {
-		t.Errorf("didnt find user expected Gamer got = %s", test1.ChatName)
+	test1 = GetUserData(testData, "Gamer")
+	if test1.GameId != "Chatter" {
+		t.Errorf("didnt find user expected Chatter got = %s", test1.ChatName)
 	}
+}
+
+func TestUpsertUserData(t *testing.T) {
+	testData := UserDataSlice{UserData{GameId: "Chatter", ChatName: "Gamer", Key: "ASDFGHJKL"}, UserData{GameId: "Chatter2", ChatName: "Gamer2", Key: "ZXCVBN"}}
+
 }

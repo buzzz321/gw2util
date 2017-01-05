@@ -168,15 +168,32 @@ func SaveUserData(userData UserDataSlice) string {
 	return ""
 }
 
-func GetUserData(users UserDataSlice, gameId string) (UserData) {
+func GetUserData(users UserDataSlice, chatName string) UserData {
 	for _, user := range users {
-		if user.GameId == gameId {
+		if user.ChatName == chatName {
 			return user
 		}
 	}
 
 	return UserData{"", "", ""}
 }
+
+func UpsertUserData(users UserDataSlice, user UserData) UserDataSlice {
+	found := false
+	for index, item := range users {
+		if item.ChatName == user.ChatName {
+			users[index] = user
+			found = true
+			fmt.Println("found")
+		}
+	}
+	if !found {
+		users = append(users, user)
+	}
+
+	return users
+}
+
 /*
 func main() {
 	gw2 := Gw2Api{"https://api.guildwars2.com/v2/", GetKey("../../../gw2/test.key")}
