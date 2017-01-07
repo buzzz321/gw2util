@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/Jeffail/gabs"
 )
@@ -22,6 +23,14 @@ type UserData struct {
 }
 
 type UserDataSlice []UserData
+
+type CharacterCache struct {
+	// need mutex here if called from goroutine..
+	charactersCache map[string]*gabs.Container
+	age             map[string]int64
+}
+
+var cache = CharacterCache{charactersCache: make(map[string]*gabs.Container), age: make(map[string]int64)}
 
 func (b UserDataSlice) Update(user UserData) UserDataSlice {
 	found := false
@@ -68,8 +77,19 @@ func getCrafting(chars *gabs.Container, name string) []GW2Crafting {
 }
 
 func GetCrafting(gw2 Gw2Api, name string) []GW2Crafting {
-	body := QueryAnetAuth(gw2, "characters")
-	jsonParsed, _ := gabs.ParseJSON(body)
+	var jsonParsed *gabs.Container
+
+	value, ok := cache.age[name]
+	if (value+30 > time.Now().Unix()) && ok {
+		fmt.Println("using cached values")
+		jsonParsed = cache.charactersCache[name]
+	} else {
+		fmt.Println("getting new values")
+		body := QueryAnetAuth(gw2, "characters")
+		jsonParsed, _ = gabs.ParseJSON(body)
+		cache.charactersCache[name] = jsonParsed
+		cache.age[name] = time.Now().Unix()
+	}
 	return getCrafting(jsonParsed, name)
 }
 
@@ -130,7 +150,6 @@ func getCharacterNames(chars *gabs.Container) []string {
 }
 
 func GetCharacterNames(gw2 Gw2Api) []string {
-
 	body := QueryAnetAuth(gw2, "characters")
 	jsonParsed, _ := gabs.ParseJSON(body)
 	return getCharacterNames(jsonParsed)
