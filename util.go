@@ -2,11 +2,12 @@ package gw2util
 
 import (
 	"fmt"
-	"github.com/Jeffail/gabs"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
+
+	"github.com/Jeffail/gabs"
 )
 
 type GW2Crafting struct {
@@ -16,15 +17,15 @@ type GW2Crafting struct {
 }
 
 type GW2Item struct {
-	ChatLink     string `json:"chat_link"`
-	Details      struct {
-			     ApplyCount  int     `json:"apply_count"`
-			     Description string  `json:"description"`
-			     DurationMs  float64 `json:"duration_ms"`
-			     Icon        string  `json:"icon"`
-			     Name        string  `json:"name"`
-			     Type        string  `json:"type"`
-		     } `json:"details"`
+	ChatLink string `json:"chat_link"`
+	Details  struct {
+		ApplyCount  int     `json:"apply_count"`
+		Description string  `json:"description"`
+		DurationMs  float64 `json:"duration_ms"`
+		Icon        string  `json:"icon"`
+		Name        string  `json:"name"`
+		Type        string  `json:"type"`
+	} `json:"details"`
 	Flags        []string `json:"flags"`
 	GameTypes    []string `json:"game_types"`
 	Icon         string   `json:"icon"`

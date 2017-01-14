@@ -76,25 +76,39 @@ func getCrafting(chars *gabs.Container, name string) []GW2Crafting {
 	return retVal
 }
 
-func GetCrafting(gw2 Gw2Api, name string) []GW2Crafting {
+func getCacheCaractersStruct(gw2 Gw2Api) *gabs.Container {
 	var jsonParsed *gabs.Container
 
-	value, ok := cache.age[name]
+	value, ok := cache.age[gw2.Key]
 	if (value+30 > time.Now().Unix()) && ok {
 		fmt.Println("using cached values")
-		jsonParsed = cache.charactersCache[name]
+		jsonParsed = cache.charactersCache[gw2.Key]
 	} else {
 		fmt.Println("getting new values")
 		body := QueryAnetAuth(gw2, "characters")
 		jsonParsed, _ = gabs.ParseJSON(body)
-		cache.charactersCache[name] = jsonParsed
-		cache.age[name] = time.Now().Unix()
+		cache.charactersCache[gw2.Key] = jsonParsed
+		cache.age[gw2.Key] = time.Now().Unix()
 	}
+
+	return jsonParsed
+}
+
+func GetCrafting(gw2 Gw2Api, name string) []GW2Crafting {
+	jsonParsed := getCacheCaractersStruct(gw2)
+
 	return getCrafting(jsonParsed, name)
 }
 
+func FindItem(gw2 Gw2Api, charName string, item string) []*GW2Item {
+	jsonParsed := getCacheCaractersStruct(gw2)
+
+	items := GetItems(gw2, GetItemIdsFromBags(jsonParsed, charName))
+	return findItem(items, item)
+}
+
 // Tries to find a guild wars 2 item from item name or item detail.type
-func FindItem(itemArr *gabs.Container, itemName string) []*GW2Item {
+func findItem(itemArr *gabs.Container, itemName string) []*GW2Item {
 	var retVal []*GW2Item
 	items, _ := itemArr.Children()
 
@@ -127,6 +141,7 @@ func GetItems(gw2 Gw2Api, Ids []uint64) *gabs.Container {
 // Extract all items from the json blob
 func GetItemIdsFromBags(chars *gabs.Container, charName string) []uint64 {
 	var retVal []uint64
+
 	children, _ := chars.Children()
 	for _, char := range children {
 		if strings.Contains(strings.ToLower(char.S("name").String()), charName) {
@@ -224,7 +239,7 @@ func main() {
 	craftings := getCrafting(jsonParsed, "Notamik")
 	log.Println(craftings[0])
 	items := GetItems(gw2, GetItemIdsFromBags(jsonParsed, "nomitik"))
-	fmt.Println(FindItem(items, "food"))
+	fmt.Println(findItem(items, "food"))
 	return
 }
 */

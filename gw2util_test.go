@@ -2,8 +2,9 @@ package gw2util
 
 import (
 	"fmt"
-	"github.com/Jeffail/gabs"
 	"testing"
+
+	"github.com/Jeffail/gabs"
 )
 
 func TestGetCharacterNames(t *testing.T) {
@@ -19,6 +20,21 @@ func TestGetCharacterNames(t *testing.T) {
 
 	*/
 }
+
+func TestSearchInBags(t *testing.T) {
+	gw2 := Gw2Api{"https://api.guildwars2.com/v2/", GetKey("../../../gw2/test.key")}
+
+	body := QueryAnetAuth(gw2, "characters")
+	jsonParsed, _ := gabs.ParseJSON(body)
+
+	items := GetItems(gw2, GetItemIdsFromBags(jsonParsed, "nomitik"))
+	itemsMatch := findItem(items, "pistol")
+
+	for _, item := range itemsMatch {
+		fmt.Println(item.String())
+	}
+}
+
 func TestSetUserData(t *testing.T) {
 	res := SaveUserData(UserDataSlice{UserData{"Chatter", "Gamer", "ASDFGHJKL"}})
 	if res != "" {
@@ -56,7 +72,9 @@ func TestGetUserData(t *testing.T) {
 	}
 }
 
+/*
 func TestUpsertUserData(t *testing.T) {
 	testData := UserDataSlice{UserData{GameId: "Chatter", ChatName: "Gamer", Key: "ASDFGHJKL"}, UserData{GameId: "Chatter2", ChatName: "Gamer2", Key: "ZXCVBN"}}
 
 }
+*/
