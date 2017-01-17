@@ -6,3 +6,4 @@
 .idea/modules.xml
 *.go~
 .idea/misc.xml
+*.renamed

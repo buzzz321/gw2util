@@ -65,11 +65,11 @@ func flattenIdArray(objectOfIdArrays *gabs.Container) []uint64 {
         tmpArr []uint64
     )
 
-    arrayOfIdArrays, _ := objectOfIdArrays.Children()
+    arrayOfIDArrays, _ := objectOfIdArrays.Children()
 
-    for _, IdArray := range arrayOfIdArrays {
-        Ids, _ := IdArray.Children()
-        length := len(IdArray.Data().([]interface{}))
+    for _, IDArray := range arrayOfIDArrays {
+        Ids, _ := IDArray.Children()
+        length := len(IDArray.Data().([]interface{}))
         tmpArr = make([]uint64, length)
         for index, item := range Ids {
             tmpArr[index] = uint64(item.Data().(float64))
