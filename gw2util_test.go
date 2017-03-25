@@ -35,6 +35,23 @@ func TestSearchInBags(t *testing.T) {
 	}
 }
 
+func TestGetHomeWorld(t *testing.T) {
+	gw2 := Gw2Api{"https://api.guildwars2.com/v2/", GetKey("../../../gw2/test.key")}
+
+	world := GetHomeWorld(gw2)
+	fmt.Printf("home world = %s\n", world)
+
+	if world != "2007" {
+		t.Errorf("didnt get correct world expected 2007 got = %s", world)
+	}
+}
+
+func TestGetWWWStats(t *testing.T) {
+	gw2 := Gw2Api{"https://api.guildwars2.com/v2/", GetKey("../../../gw2/test.key")}
+
+	fmt.Print(GetWWWStats(gw2, "2007"))
+}
+
 func TestSetUserData(t *testing.T) {
 	res := SaveUserData(UserDataSlice{UserData{"Chatter", "Gamer", "ASDFGHJKL"}})
 	if res != "" {

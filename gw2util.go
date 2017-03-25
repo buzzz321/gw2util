@@ -33,7 +33,13 @@ type CharacterCache struct {
 	age             map[string]int64
 }
 
-var cache = CharacterCache{charactersCache: make(map[string]*gabs.Container), age: make(map[string]int64)}
+type AccountCache struct {
+	accountCache map[string]*gabs.Container
+	age          map[string]int64
+}
+
+var accountCache = AccountCache{accountCache: make(map[string]*gabs.Container), age: make(map[string]int64)}
+var charCache = CharacterCache{charactersCache: make(map[string]*gabs.Container), age: make(map[string]int64)}
 
 // Update a users gw2 api key data or add the user to the slice if
 // the user hasnt set his data yet.
@@ -84,16 +90,16 @@ func getCrafting(chars *gabs.Container, name string) []GW2Crafting {
 func getCacheCaractersStruct(gw2 Gw2Api) *gabs.Container {
 	var jsonParsed *gabs.Container
 
-	value, ok := cache.age[gw2.Key]
-	if (value + 30 > time.Now().Unix()) && ok {
+	value, ok := charCache.age[gw2.Key]
+	if (value+30 > time.Now().Unix()) && ok {
 		fmt.Println("using cached values")
-		jsonParsed = cache.charactersCache[gw2.Key]
+		jsonParsed = charCache.charactersCache[gw2.Key]
 	} else {
 		fmt.Println("getting new values")
 		body := QueryAnetAuth(gw2, "characters")
 		jsonParsed, _ = gabs.ParseJSON(body)
-		cache.charactersCache[gw2.Key] = jsonParsed
-		cache.age[gw2.Key] = time.Now().Unix()
+		charCache.charactersCache[gw2.Key] = jsonParsed
+		charCache.age[gw2.Key] = time.Now().Unix()
 	}
 
 	return jsonParsed
@@ -231,6 +237,49 @@ func UpsertUserData(users UserDataSlice, user UserData) UserDataSlice {
 	}
 
 	return users
+}
+
+func getCacheAccountStruct(gw2 Gw2Api) *gabs.Container {
+	var jsonParsed *gabs.Container
+
+	value, ok := accountCache.age[gw2.Key]
+	if (value+300 > time.Now().Unix()) && ok {
+		fmt.Println("using cached values")
+		jsonParsed = accountCache.accountCache[gw2.Key]
+	} else {
+		fmt.Println("getting new values")
+		body := QueryAnetAuth(gw2, "account")
+		jsonParsed, _ = gabs.ParseJSON(body)
+		accountCache.accountCache[gw2.Key] = jsonParsed
+		accountCache.age[gw2.Key] = time.Now().Unix()
+	}
+
+	return jsonParsed
+}
+
+func GetHomeWorld(gw2 Gw2Api) string {
+	jsonParsed := getCacheAccountStruct(gw2)
+	return jsonParsed.Search("world").String()
+}
+
+func GetWWWStats(gw2 Gw2Api, world string) GW2WvWvWStats {
+	//: make(map[string]*gabs.Container), age: make(map[string]int64)}
+	retVal := GW2WvWvWStats{}
+
+	body := QueryAnet(gw2, "wvw/matches/stats", "world", world)
+	jsonParsed, _ := gabs.ParseJSON(body)
+
+	fmt.Println(jsonParsed.Path("deaths.red").Data().(float64))
+
+	retVal.Deaths.Red = jsonParsed.Path("deaths.red").Data().(float64)
+	retVal.Deaths.Blue = jsonParsed.Path("deaths.blue").Data().(float64)
+	retVal.Deaths.Green = jsonParsed.Path("deaths.green").Data().(float64)
+
+	retVal.Kills.Red = jsonParsed.Path("kills.red").Data().(float64)
+	retVal.Kills.Blue = jsonParsed.Path("kills.blue").Data().(float64)
+	retVal.Kills.Green = jsonParsed.Path("kills.green").Data().(float64)
+
+	return retVal
 }
 
 /*

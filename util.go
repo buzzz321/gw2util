@@ -10,6 +10,22 @@ import (
 	"github.com/Jeffail/gabs"
 )
 
+type GW2WvWvWStats struct {
+	ID string
+
+	Deaths struct {
+		Red   float64
+		Blue  float64
+		Green float64
+	}
+
+	Kills struct {
+		Red   float64
+		Blue  float64
+		Green float64
+	}
+}
+
 type GW2Crafting struct {
 	Discipline string
 	Rating     int64
@@ -17,15 +33,15 @@ type GW2Crafting struct {
 }
 
 type GW2Item struct {
-	ChatLink     string `json:"chat_link"`
-	Details      struct {
-			     ApplyCount  int     `json:"apply_count"`
-			     Description string  `json:"description"`
-			     DurationMs  float64 `json:"duration_ms"`
-			     Icon        string  `json:"icon"`
-			     Name        string  `json:"name"`
-			     Type        string  `json:"type"`
-		     } `json:"details"`
+	ChatLink string `json:"chat_link"`
+	Details  struct {
+		ApplyCount  int     `json:"apply_count"`
+		Description string  `json:"description"`
+		DurationMs  float64 `json:"duration_ms"`
+		Icon        string  `json:"icon"`
+		Name        string  `json:"name"`
+		Type        string  `json:"type"`
+	} `json:"details"`
 	Flags        []string `json:"flags"`
 	GameTypes    []string `json:"game_types"`
 	Icon         string   `json:"icon"`
@@ -45,6 +61,12 @@ func (b GW2Crafting) String() string {
 func (b GW2Item) String() string {
 	return fmt.Sprintf("\n Name: %s\n Type: %s \nUrl: %s\n", b.Name, b.Type, b.ChatLink)
 }
+
+func (b GW2WvWvWStats) String() string {
+	return fmt.Sprintf("\n Deaths\n Red: %6.f\n Green: %6.f \n Blue: %6.f\n Kills\n Red: %6.f\n Green: %6.f \n Blue: %6.f\n",
+		b.Deaths.Red, b.Deaths.Green, b.Deaths.Blue, b.Kills.Red, b.Kills.Green, b.Kills.Blue)
+}
+
 func GetKey(filename string) string {
 	buff, err := ioutil.ReadFile(filename) // just pass the file name
 	if err != nil {
