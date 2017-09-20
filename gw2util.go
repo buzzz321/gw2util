@@ -27,6 +27,11 @@ type UserData struct {
 
 type UserDataSlice []UserData
 
+type Worlds struct {
+	//worldid worldname
+	WorldName map[int64]string
+}
+
 type CharacterCache struct {
 	// need mutex here if called from goroutine..
 	charactersCache map[string]*gabs.Container
@@ -87,7 +92,7 @@ func getCrafting(chars *gabs.Container, name string) []GW2Crafting {
 	return retVal
 }
 
-func getCacheCaractersStruct(gw2 Gw2Api) *gabs.Container {
+func getCacheCharactersStruct(gw2 Gw2Api) *gabs.Container {
 	var jsonParsed *gabs.Container
 
 	value, ok := charCache.age[gw2.Key]
@@ -106,14 +111,14 @@ func getCacheCaractersStruct(gw2 Gw2Api) *gabs.Container {
 }
 
 func GetCrafting(gw2 Gw2Api, name string) []GW2Crafting {
-	jsonParsed := getCacheCaractersStruct(gw2)
+	jsonParsed := getCacheCharactersStruct(gw2)
 
 	return getCrafting(jsonParsed, name)
 }
 
 func FindItem(gw2 Gw2Api, charName string, item string) []*GW2Item {
 
-	jsonParsed := getCacheCaractersStruct(gw2)
+	jsonParsed := getCacheCharactersStruct(gw2)
 	items := GetItems(gw2, GetItemIdsFromBags(jsonParsed, charName))
 	return findItem(items, item)
 }
@@ -158,7 +163,7 @@ func GetItemIdsFromBags(chars *gabs.Container, charName string) []uint64 {
 		if strings.Contains(strings.ToLower(char.S("name").String()), strings.ToLower(charName)) {
 			items := char.Path("bags.inventory.id")
 			//fmt.Println(items)
-			retVal = append(retVal, flattenIdArray(items)...)
+			retVal = append(retVal, flattenIDArray(items)...)
 			//fmt.Println((retVal))
 		}
 	}
@@ -214,7 +219,11 @@ func SaveUserData(userData UserDataSlice) string {
 }
 
 func GetUserData(users UserDataSlice, chatName string) UserData {
+	//    for _, tuser := range users {
+	//        fmt.Printf("username = %s GameId = %s Key = %s\n", tuser.ChatName, tuser.GameId, tuser.Key)
+	//    }
 	for _, user := range users {
+		fmt.Println(user)
 		if user.ChatName == chatName {
 			return user
 		}
@@ -269,7 +278,8 @@ func GetWWWStats(gw2 Gw2Api, world string) GW2WvWvWStats {
 	body := QueryAnet(gw2, "wvw/matches/stats", "world", world)
 	jsonParsed, _ := gabs.ParseJSON(body)
 
-	fmt.Println(jsonParsed.Path("deaths.red").Data().(float64))
+	//fmt.Println(jsonParsed.String())
+	//fmt.Println(jsonParsed.Path("deaths.red").Data().(float64))
 
 	retVal.Deaths.Red = jsonParsed.Path("deaths.red").Data().(float64)
 	retVal.Deaths.Blue = jsonParsed.Path("deaths.blue").Data().(float64)
@@ -278,6 +288,23 @@ func GetWWWStats(gw2 Gw2Api, world string) GW2WvWvWStats {
 	retVal.Kills.Red = jsonParsed.Path("kills.red").Data().(float64)
 	retVal.Kills.Blue = jsonParsed.Path("kills.blue").Data().(float64)
 	retVal.Kills.Green = jsonParsed.Path("kills.green").Data().(float64)
+
+	return retVal
+}
+
+func GetWorlds(gw2 Gw2Api, worlds string) Worlds {
+	retVal := Worlds{WorldName: make(map[int64]string)}
+
+	body := QueryAnet(gw2, "worlds", "ids", worlds)
+	dec := json.NewDecoder(strings.NewReader(string(body[:])))
+	dec.UseNumber()
+	jsonParsed, _ := gabs.ParseJSONDecoder(dec)
+
+	items, _ := jsonParsed.Children()
+	for _, item := range items {
+		key, _ := item.Path("id").Data().(json.Number).Int64()
+		retVal.WorldName[key] = item.Path("name").Data().(string)
+	}
 
 	return retVal
 }

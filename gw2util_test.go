@@ -52,6 +52,12 @@ func TestGetWWWStats(t *testing.T) {
 	fmt.Print(GetWWWStats(gw2, "2007"))
 }
 
+func TestGetWorlds(t *testing.T) {
+	gw2 := Gw2Api{"https://api.guildwars2.com/v2/", GetKey("../../../gw2/test.key")}
+
+	fmt.Print(GetWorlds(gw2, "2007"))
+}
+
 func TestSetUserData(t *testing.T) {
 	res := SaveUserData(UserDataSlice{UserData{"Chatter", "Gamer", "ASDFGHJKL"}})
 	if res != "" {
