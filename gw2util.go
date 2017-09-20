@@ -17,7 +17,7 @@ type Gw2Api struct {
     Key     string
 }
 
-// UserData conatins the connection between the chat name and an
+// UserData contains the connection between the chat name and an
 // gw2 account char name.
 type UserData struct {
     GameID   string
