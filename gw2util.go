@@ -65,6 +65,7 @@ func (b UserDataSlice) Update(user UserData) UserDataSlice {
 
 func getCrafting(chars *gabs.Container, name string) []GW2Crafting {
     size, _ := chars.ArrayCount("name")
+    //fmt.Println(name)
     var retVal = make([]GW2Crafting, 0)
 
     for index := 0; index < size; index++ {
@@ -119,6 +120,7 @@ func GetCrafting(gw2 Gw2Api, name string) []GW2Crafting {
 func FindItem(gw2 Gw2Api, charName string, item string) []*GW2Item {
 
     jsonParsed := getCacheCharactersStruct(gw2)
+    //fmt.Println(jsonParsed.StringIndent("","\t"))
     items := GetItems(gw2, GetItemIdsFromBags(jsonParsed, charName))
     return findItem(items, item)
 }
@@ -219,9 +221,9 @@ func SaveUserData(userData UserDataSlice) string {
 }
 
 func GetUserData(users UserDataSlice, chatName string) UserData {
-    //    for _, tuser := range users {
-    //        fmt.Printf("username = %s GameId = %s Key = %s\n", tuser.ChatName, tuser.GameId, tuser.Key)
-    //    }
+        //for _, tuser := range users {
+        //    fmt.Printf("username = %s GameId = %s Key = %s\n", tuser.ChatName, tuser.GameID, tuser.Key)
+        //}
     for _, user := range users {
         fmt.Println(user)
         if user.ChatName == chatName {
