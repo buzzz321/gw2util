@@ -111,16 +111,18 @@ func getCacheCharactersStruct(gw2 Gw2Api) *gabs.Container {
     return jsonParsed
 }
 
+// GetCrafting returns all crafts for all charachters
 func GetCrafting(gw2 Gw2Api, name string) []GW2Crafting {
     jsonParsed := getCacheCharactersStruct(gw2)
 
     return getCrafting(jsonParsed, name)
 }
 
+// FindItem search for items in a characters bags
 func FindItem(gw2 Gw2Api, charName string, item string) []*GW2Item {
 
     jsonParsed := getCacheCharactersStruct(gw2)
-    //fmt.Println(jsonParsed.StringIndent("","\t"))
+    //fmt.Println(jsonParsed.StringIndent("", "\t"))
     items := GetItems(gw2, GetItemIdsFromBags(jsonParsed, charName))
     return findItem(items, item)
 }
@@ -148,7 +150,7 @@ func findItem(itemArr *gabs.Container, itemName string) []*GW2Item {
     return retVal
 }
 
-// Query the guild wars 2 json api for the items thsi character has in its bags.
+// GetItems query the guild wars 2 json api for the items thsi character has in its bags.
 func GetItems(gw2 Gw2Api, Ids []uint64) *gabs.Container {
     strIds := arrayToString(Ids, ",")
     body := QueryAnet(gw2, "items", "ids", strIds)
@@ -156,7 +158,7 @@ func GetItems(gw2 Gw2Api, Ids []uint64) *gabs.Container {
     return jsonParsed
 }
 
-// Extract all items from the json blob
+// GetItemIdsFromBags extract all items from the json blob
 func GetItemIdsFromBags(chars *gabs.Container, charName string) []uint64 {
     var retVal []uint64
     //fmt.Println(charName)
@@ -182,12 +184,14 @@ func getCharacterNames(chars *gabs.Container) []string {
     return retVal
 }
 
+// GetCharacterNames Get all character names from an account
 func GetCharacterNames(gw2 Gw2Api) []string {
     body := QueryAnetAuth(gw2, "characters")
     jsonParsed, _ := gabs.ParseJSON(body)
     return getCharacterNames(jsonParsed)
 }
 
+// ReadUserData read in account info and api keys from disc
 func ReadUserData(filename string) UserDataSlice {
     var retVal UserDataSlice
 
@@ -205,6 +209,7 @@ func ReadUserData(filename string) UserDataSlice {
     return retVal
 }
 
+// SaveUserData save username and api key to disc
 func SaveUserData(userData UserDataSlice) string {
 
     userJson, err := json.Marshal(userData)
@@ -220,10 +225,11 @@ func SaveUserData(userData UserDataSlice) string {
     return ""
 }
 
+// GetUserData return a user account from a discord chat name
 func GetUserData(users UserDataSlice, chatName string) UserData {
-        //for _, tuser := range users {
-        //    fmt.Printf("username = %s GameId = %s Key = %s\n", tuser.ChatName, tuser.GameID, tuser.Key)
-        //}
+    //for _, tuser := range users {
+    //    fmt.Printf("username = %s GameId = %s Key = %s\n", tuser.ChatName, tuser.GameID, tuser.Key)
+    //}
     for _, user := range users {
         fmt.Println(user)
         if user.ChatName == chatName {
@@ -234,6 +240,7 @@ func GetUserData(users UserDataSlice, chatName string) UserData {
     return UserData{"", "", ""}
 }
 
+// UpsertUserData update or insert gw2 api user info for a discord chat name
 func UpsertUserData(users UserDataSlice, user UserData) UserDataSlice {
     found := false
     for index, item := range users {
@@ -268,11 +275,13 @@ func getCacheAccountStruct(gw2 Gw2Api) *gabs.Container {
     return jsonParsed
 }
 
+// GetHomeWorld for a gw2 account
 func GetHomeWorld(gw2 Gw2Api) string {
     jsonParsed := getCacheAccountStruct(gw2)
     return jsonParsed.Search("world").String()
 }
 
+// GetWWWStats returns the current WvWvW standings
 func GetWWWStats(gw2 Gw2Api, world string) GW2WvWvWStats {
     //: make(map[string]*gabs.Container), age: make(map[string]int64)}
     retVal := GW2WvWvWStats{}
@@ -294,6 +303,7 @@ func GetWWWStats(gw2 Gw2Api, world string) GW2WvWvWStats {
     return retVal
 }
 
+// GetWorldIds returns the names of the servers in WvWvW
 func GetWorlds(gw2 Gw2Api, worlds string) Worlds {
     retVal := Worlds{WorldName: make(map[int64]string)}
 
