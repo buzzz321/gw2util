@@ -324,12 +324,13 @@ func GetWWWStats(gw2 Gw2Api, world string) [5]GW2WvWvWStats {
 	for key, child := range values {
 		//fmt.Printf("key: %v,value: %v\n", key+1, child)
 		retVal[key+1] = extractWvWvWStats(child)
+		fmt.Printf("\n %v \n", retVal[key+1].ID)
 	}
 
 	return retVal
 }
 
-// GetWorldIds returns the names of the servers in WvWvW
+// GetWorlds returns the names of the servers in WvWvW
 func GetWorlds(gw2 Gw2Api, worlds string) Worlds {
 	retVal := Worlds{WorldName: make(map[int64]string)}
 
@@ -344,6 +345,25 @@ func GetWorlds(gw2 Gw2Api, worlds string) Worlds {
 		retVal.WorldName[key] = item.Path("name").Data().(string)
 	}
 
+	return retVal
+}
+
+// GetWvWvWMatchParticipants return main worlds from this matchup
+func GetWvWvWMatchParticipants(gw2 Gw2Api, worldID string) Worlds {
+	retVal := Worlds{WorldName: make(map[int64]string)}
+
+	body := QueryAnet(gw2, "wvw/matches", "world", worldID)
+	dec := json.NewDecoder(strings.NewReader(string(body[:])))
+	dec.UseNumber()
+	jsonParsed, _ := gabs.ParseJSONDecoder(dec)
+
+	items, _ := jsonParsed.S("worlds").ChildrenMap()
+	for colour, id := range items {
+		//key, _ := item.Path("id").Data().(json.Number).Int64()
+		fmt.Printf("key=%v value=%v\n", id, colour)
+		tmpID, _ := id.Data().(json.Number).Int64()
+		retVal.WorldName[tmpID] = colour
+	}
 	return retVal
 }
 

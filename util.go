@@ -139,14 +139,16 @@ func doRestQuery(Url string) []byte {
 	return body
 }
 
+// QueryAnet send web request to anet that dont require access token
 func QueryAnet(gw2 Gw2Api, command string, paramName string, paramValue string) []byte {
-	Url := fmt.Sprintf("%s%s%s%s%s%s", gw2.BaseURL, command, "?", paramName, "=", paramValue)
-	//fmt.Println("Url: ", Url)
-	return doRestQuery(Url)
+	URL := fmt.Sprintf("%s%s%s%s%s%s", gw2.BaseURL, command, "?", paramName, "=", paramValue)
+	//fmt.Println("Url: ", URL)
+	return doRestQuery(URL)
 }
 
+// QueryAnetAuth send web request to anet that require access token
 func QueryAnetAuth(gw2 Gw2Api, command string) []byte {
-	Url := fmt.Sprintf("%s%s%s%s%s", gw2.BaseURL, command, "?access_token=", gw2.Key, "&page=0")
+	URL := fmt.Sprintf("%s%s%s%s%s", gw2.BaseURL, command, "?access_token=", gw2.Key, "&page=0")
 
-	return doRestQuery(Url)
+	return doRestQuery(URL)
 }
