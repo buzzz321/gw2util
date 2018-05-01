@@ -27,9 +27,20 @@ type UserData struct {
 
 type UserDataSlice []UserData
 
-type Worlds struct {
+type World struct {
+	ID     int64
+	Name   string
+	Colour string
+}
+
+type WorldNames struct {
 	//worldid worldname
 	WorldName map[int64]string
+}
+
+type WorldColours struct {
+	//worldid worldname
+	WorldColour map[int64]string
 }
 
 type CharacterCache struct {
@@ -212,12 +223,12 @@ func ReadUserData(filename string) UserDataSlice {
 // SaveUserData save username and api key to disc
 func SaveUserData(userData UserDataSlice) string {
 
-	userJson, err := json.Marshal(userData)
+	userJSON, err := json.Marshal(userData)
 	if err != nil {
 		fmt.Print(err)
 		return "Can't marshall data"
 	}
-	err = ioutil.WriteFile("data.dat", userJson, 0600) // just pass the file name
+	err = ioutil.WriteFile("data.dat", userJSON, 0600) // just pass the file name
 	if err != nil {
 		fmt.Print(err)
 		return "Can't write to file"
@@ -285,7 +296,6 @@ func extractWvWvWStats(child *gabs.Container) GW2WvWvWStats {
 
 	retVal := GW2WvWvWStats{}
 
-	fmt.Println(child.S("id").String())
 	retVal.ID = child.S("id").String()
 	value, ok := child.S("type").Data().(string)
 	if ok {
@@ -324,15 +334,14 @@ func GetWWWStats(gw2 Gw2Api, world string) [5]GW2WvWvWStats {
 	for key, child := range values {
 		//fmt.Printf("key: %v,value: %v\n", key+1, child)
 		retVal[key+1] = extractWvWvWStats(child)
-		fmt.Printf("\n %v \n", retVal[key+1].ID)
 	}
 
 	return retVal
 }
 
 // GetWorlds returns the names of the servers in WvWvW
-func GetWorlds(gw2 Gw2Api, worlds string) Worlds {
-	retVal := Worlds{WorldName: make(map[int64]string)}
+func GetWorlds(gw2 Gw2Api, worlds string) WorldNames {
+	retVal := WorldNames{WorldName: make(map[int64]string)}
 
 	body := QueryAnet(gw2, "worlds", "ids", worlds)
 	dec := json.NewDecoder(strings.NewReader(string(body[:])))
@@ -348,9 +357,9 @@ func GetWorlds(gw2 Gw2Api, worlds string) Worlds {
 	return retVal
 }
 
-// GetWvWvWMatchParticipants return main worlds from this matchup
-func GetWvWvWMatchParticipants(gw2 Gw2Api, worldID string) Worlds {
-	retVal := Worlds{WorldName: make(map[int64]string)}
+// GetWvWvWColours return main worlds from this matchup
+func GetWvWvWColours(gw2 Gw2Api, worldID string) WorldColours {
+	retVal := WorldColours{WorldColour: make(map[int64]string)}
 
 	body := QueryAnet(gw2, "wvw/matches", "world", worldID)
 	dec := json.NewDecoder(strings.NewReader(string(body[:])))
@@ -360,25 +369,9 @@ func GetWvWvWMatchParticipants(gw2 Gw2Api, worldID string) Worlds {
 	items, _ := jsonParsed.S("worlds").ChildrenMap()
 	for colour, id := range items {
 		//key, _ := item.Path("id").Data().(json.Number).Int64()
-		fmt.Printf("key=%v value=%v\n", id, colour)
+		//fmt.Printf("key=%v value=%v\n", id, colour)
 		tmpID, _ := id.Data().(json.Number).Int64()
-		retVal.WorldName[tmpID] = colour
+		retVal.WorldColour[tmpID] = colour
 	}
 	return retVal
 }
-
-/*
-func main() {
-    gw2 := Gw2Api{"https://api.guildwars2.com/v2/", GetKey("../../../gw2/test.key")}
-
-    body := QueryAnetAuth(gw2, "characters")
-    jsonParsed, _ := gabs.ParseJSON(body)
-    getCharacterNames(jsonParsed)
-    //fmt.Println(jsonParsed.StringIndent("","\t"))
-    craftings := getCrafting(jsonParsed, "Notamik")
-    log.Println(craftings[0])
-    items := GetItems(gw2, GetItemIdsFromBags(jsonParsed, "nomitik"))
-    fmt.Println(findItem(items, "food"))
-    return
-}
-*/

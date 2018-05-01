@@ -111,12 +111,12 @@ func flattenIDArray(objectOfIDArrays *gabs.Container) []uint64 {
 	return retVal
 }
 
-func doRestQuery(Url string) []byte {
+func doRestQuery(URL string) []byte {
 	tr := &http.Transport{
 		DisableCompression: true,
 	}
 
-	req, err := http.NewRequest("GET", Url, nil)
+	req, err := http.NewRequest("GET", URL, nil)
 	if err != nil {
 		log.Fatal("NewRequest: ", err)
 		return nil

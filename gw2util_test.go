@@ -100,7 +100,7 @@ func TestGetWvWvWMatchParticipants(t *testing.T) {
 	gw2 := Gw2Api{"https://api.guildwars2.com/v2/", GetKey("../../../gw2/test.key")}
 
 	fmt.Printf("\nWorld test \n")
-	fmt.Printf("%v\n", GetWvWvWMatchParticipants(gw2, "2007"))
+	fmt.Printf("%v\n", GetWvWvWColours(gw2, "2007"))
 }
 
 /*
