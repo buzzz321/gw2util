@@ -299,7 +299,7 @@ func extractWvWvWStats(child *gabs.Container) GW2WvWvWStats {
 	retVal.ID = child.S("id").String()
 	value, ok := child.S("type").Data().(string)
 	if ok {
-		retVal.Name = value
+		retVal.Name = strings.ToLower(strings.Replace(value, "Home", "", -1))
 	} else {
 		retVal.Name = ""
 	}
