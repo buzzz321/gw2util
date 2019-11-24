@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -320,8 +321,11 @@ func GetWWWStats(gw2 Gw2Api, world string) [5]GW2WvWvWStats {
 	item := GW2WvWvWStats{}
 
 	body := QueryAnet(gw2, "wvw/matches/stats", "world", world)
-	jsonParsed, _ := gabs.ParseJSON(body)
+	jsonParsed, err := gabs.ParseJSON(body)
 
+	if err != nil {
+		log.Fatal("error code:", err, "\n", jsonParsed.String())
+	}
 	//fmt.Println(jsonParsed.String())
 	//fmt.Printf("key: %v,value: %v\n", 0, jsonParsed)
 	item = extractWvWvWStats(jsonParsed)
@@ -329,7 +333,11 @@ func GetWWWStats(gw2 Gw2Api, world string) [5]GW2WvWvWStats {
 
 	retVal[0] = item
 
-	values, _ := jsonParsed.S("maps").Children()
+	values, err := jsonParsed.S("maps").Children()
+
+	if err != nil {
+		log.Fatal("error code:", err, "\n", jsonParsed.String())
+	}
 	fmt.Println(len(values))
 	for key, child := range values {
 		//fmt.Printf("key: %v,value: %v\n", key+1, child)
