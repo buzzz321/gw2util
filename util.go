@@ -97,10 +97,10 @@ func flattenIDArray(objectOfIDArrays *gabs.Container) []uint64 {
 		tmpArr []uint64
 	)
 
-	arrayOfIDArrays, _ := objectOfIDArrays.Children()
+	arrayOfIDArrays := objectOfIDArrays.Children()
 
 	for _, IDArray := range arrayOfIDArrays {
-		Ids, _ := IDArray.Children()
+		Ids := IDArray.Children()
 		length := len(IDArray.Data().([]interface{}))
 		tmpArr = make([]uint64, length)
 		for index, item := range Ids {
