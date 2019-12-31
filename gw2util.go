@@ -327,12 +327,12 @@ func GetWWWStats(gw2 Gw2Api, world string) [5]GW2WvWvWStats {
 	item := GW2WvWvWStats{}
 	var body []byte
 	var err error
-	for retries :=  0 ; retries < 5; retries++ {
+	for retries := 0; retries < 5; retries++ {
 		body, err = QueryAnet(gw2, "wvw/matches/stats", "world", world)
-		if err ==  nil {
+		if err == nil {
 			break
 		}
-		log.Printf("No data back retry number %d", retries + 1)
+		log.Printf("No data back retry number %d\n", retries+1)
 		time.Sleep(100 * time.Millisecond)
 	}
 	jsonParsed, err := gabs.ParseJSON(body)
