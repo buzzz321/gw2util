@@ -10,7 +10,7 @@ import (
 func TestGetCharacterNames(t *testing.T) {
 	gw2 := Gw2Api{"https://api.guildwars2.com/v2/", GetKey("../../../gw2/test.key")}
 
-	body := QueryAnetAuth(gw2, "characters")
+	body, _ := QueryAnetAuth(gw2, "characters")
 	jsonParsed, _ := gabs.ParseJSON(body)
 	chars := getCharacterNames(jsonParsed)
 
@@ -24,7 +24,7 @@ func TestGetCharacterNames(t *testing.T) {
 func TestSearchInBags(t *testing.T) {
 	gw2 := Gw2Api{"https://api.guildwars2.com/v2/", GetKey("../../../gw2/test.key")}
 
-	body := QueryAnetAuth(gw2, "characters")
+	body, _ := QueryAnetAuth(gw2, "characters")
 	jsonParsed, _ := gabs.ParseJSON(body)
 
 	items := GetItems(gw2, GetItemIdsFromBags(jsonParsed, "nomitik"))
