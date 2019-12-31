@@ -111,7 +111,7 @@ func flattenIDArray(objectOfIDArrays *gabs.Container) []uint64 {
 	return retVal
 }
 
-func doRestQuery(URL string) []byte {
+func doRestQuery(URL string) ([]byte, error) {
 	tr := &http.Transport{
 		DisableCompression: true,
 	}
@@ -119,7 +119,7 @@ func doRestQuery(URL string) []byte {
 	req, err := http.NewRequest("GET", URL, nil)
 	if err != nil {
 		log.Fatal("NewRequest: ", err)
-		return nil
+		return nil,err
 	}
 
 	client := &http.Client{Transport: tr}
@@ -127,27 +127,30 @@ func doRestQuery(URL string) []byte {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal("Do: ", err)
-		return nil
+		return nil,err
 	}
 
 	// Callers should close resp.Body
 	// when done reading from it
 	// Defer the closing of the body
 	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
 
-	return body
+	if err != nil {
+		log.Fatal("Readall: ", err)
+	}
+	return body,err
 }
 
 // QueryAnet send web request to anet that dont require access token
-func QueryAnet(gw2 Gw2Api, command string, paramName string, paramValue string) []byte {
+func QueryAnet(gw2 Gw2Api, command string, paramName string, paramValue string) ([]byte, error) {
 	URL := fmt.Sprintf("%s%s%s%s%s%s", gw2.BaseURL, command, "?", paramName, "=", paramValue)
 	//fmt.Println("Url: ", URL)
 	return doRestQuery(URL)
 }
 
 // QueryAnetAuth send web request to anet that require access token
-func QueryAnetAuth(gw2 Gw2Api, command string) []byte {
+func QueryAnetAuth(gw2 Gw2Api, command string) ([]byte, error) {
 	URL := fmt.Sprintf("%s%s%s%s%s", gw2.BaseURL, command, "?access_token=", gw2.Key, "&page=0")
 
 	return doRestQuery(URL)

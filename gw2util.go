@@ -26,30 +26,50 @@ type UserData struct {
 	Key      string
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// UserDataSlice contains all users data
 type UserDataSlice []UserData
 
+// World is the gw2 world json in go
 type World struct {
 	ID     int64
 	Name   string
 	Colour string
 }
 
+// WorldNames all worlds in this matchup
 type WorldNames struct {
 	//worldid worldname
 	WorldName map[int64]string
 }
 
+// WorldColours the colurs of our worlds (red,blue,green)
 type WorldColours struct {
 	//worldid worldname
 	WorldColour map[int64]string
 }
 
+// CharacterCache since some data takes long time to parse and fetch we cache it
 type CharacterCache struct {
 	// need mutex here if called from goroutine..
 	charactersCache map[string]*gabs.Container
 	age             map[string]int64
 }
 
+// AccountCache more caching of not so often uptaded data
 type AccountCache struct {
 	accountCache map[string]*gabs.Container
 	age          map[string]int64
@@ -114,7 +134,7 @@ func getCacheCharactersStruct(gw2 Gw2Api) *gabs.Container {
 		jsonParsed = charCache.charactersCache[gw2.Key]
 	} else {
 		fmt.Println("getting new values")
-		body := QueryAnetAuth(gw2, "characters")
+		body, _ := QueryAnetAuth(gw2, "characters")
 		jsonParsed, _ = gabs.ParseJSON(body)
 		charCache.charactersCache[gw2.Key] = jsonParsed
 		charCache.age[gw2.Key] = time.Now().Unix()
@@ -165,7 +185,7 @@ func findItem(itemArr *gabs.Container, itemName string) []*GW2Item {
 // GetItems query the guild wars 2 json api for the items thsi character has in its bags.
 func GetItems(gw2 Gw2Api, Ids []uint64) *gabs.Container {
 	strIds := arrayToString(Ids, ",")
-	body := QueryAnet(gw2, "items", "ids", strIds)
+	body, _ := QueryAnet(gw2, "items", "ids", strIds)
 	jsonParsed, _ := gabs.ParseJSON(body)
 	return jsonParsed
 }
@@ -198,7 +218,7 @@ func getCharacterNames(chars *gabs.Container) []string {
 
 // GetCharacterNames Get all character names from an account
 func GetCharacterNames(gw2 Gw2Api) []string {
-	body := QueryAnetAuth(gw2, "characters")
+	body, _ := QueryAnetAuth(gw2, "characters")
 	jsonParsed, _ := gabs.ParseJSON(body)
 	return getCharacterNames(jsonParsed)
 }
@@ -278,7 +298,7 @@ func getCacheAccountStruct(gw2 Gw2Api) *gabs.Container {
 		jsonParsed = accountCache.accountCache[gw2.Key]
 	} else {
 		fmt.Println("getting new values")
-		body := QueryAnetAuth(gw2, "account")
+		body, _ := QueryAnetAuth(gw2, "account")
 		jsonParsed, _ = gabs.ParseJSON(body)
 		accountCache.accountCache[gw2.Key] = jsonParsed
 		accountCache.age[gw2.Key] = time.Now().Unix()
@@ -320,7 +340,7 @@ func GetWWWStats(gw2 Gw2Api, world string) [5]GW2WvWvWStats {
 	retVal := [5]GW2WvWvWStats{}
 	item := GW2WvWvWStats{}
 
-	body := QueryAnet(gw2, "wvw/matches/stats", "world", world)
+	body, _ := QueryAnet(gw2, "wvw/matches/stats", "world", world)
 	jsonParsed, err := gabs.ParseJSON(body)
 
 	if err != nil {
@@ -351,7 +371,7 @@ func GetWWWStats(gw2 Gw2Api, world string) [5]GW2WvWvWStats {
 func GetWorlds(gw2 Gw2Api, worlds string) WorldNames {
 	retVal := WorldNames{WorldName: make(map[int64]string)}
 
-	body := QueryAnet(gw2, "worlds", "ids", worlds)
+	body, _ := QueryAnet(gw2, "worlds", "ids", worlds)
 	dec := json.NewDecoder(strings.NewReader(string(body[:])))
 	dec.UseNumber()
 	jsonParsed, _ := gabs.ParseJSONDecoder(dec)
@@ -369,7 +389,7 @@ func GetWorlds(gw2 Gw2Api, worlds string) WorldNames {
 func GetWvWvWColours(gw2 Gw2Api, worldID string) WorldColours {
 	retVal := WorldColours{WorldColour: make(map[int64]string)}
 
-	body := QueryAnet(gw2, "wvw/matches", "world", worldID)
+	body, _ := QueryAnet(gw2, "wvw/matches", "world", worldID)
 	dec := json.NewDecoder(strings.NewReader(string(body[:])))
 	dec.UseNumber()
 	jsonParsed, _ := gabs.ParseJSONDecoder(dec)
