@@ -1,6 +1,7 @@
 package gw2util
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -119,7 +120,7 @@ func doRestQuery(URL string) ([]byte, error) {
 	req, err := http.NewRequest("GET", URL, nil)
 	if err != nil {
 		log.Fatal("NewRequest: ", err)
-		return nil,err
+		return nil, err
 	}
 
 	client := &http.Client{Transport: tr}
@@ -127,7 +128,7 @@ func doRestQuery(URL string) ([]byte, error) {
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal("Do: ", err)
-		return nil,err
+		return nil, err
 	}
 
 	// Callers should close resp.Body
@@ -136,10 +137,13 @@ func doRestQuery(URL string) ([]byte, error) {
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 
+	if len(body) < 10 {
+		err = errors.New("ReadAll: rest request returned no data")
+	}
 	if err != nil {
 		log.Fatal("Readall: ", err)
 	}
-	return body,err
+	return body, err
 }
 
 // QueryAnet send web request to anet that dont require access token
