@@ -310,14 +310,18 @@ func extractWvWvWStats(child *gabs.Container) GW2WvWvWStats {
 	} else {
 		retVal.Name = ""
 	}
-	retVal.Deaths.Red = child.Path("deaths.red").Data().(float64)
-	retVal.Deaths.Blue = child.Path("deaths.blue").Data().(float64)
-	retVal.Deaths.Green = child.Path("deaths.green").Data().(float64)
+	retVal.Deaths.Red, ok = child.Path("deaths.red").Data().(float64)
+	retVal.Deaths.Blue, ok = child.Path("deaths.blue").Data().(float64)
+	retVal.Deaths.Green, ok = child.Path("deaths.green").Data().(float64)
 
-	retVal.Kills.Red = child.Path("kills.red").Data().(float64)
-	retVal.Kills.Blue = child.Path("kills.blue").Data().(float64)
-	retVal.Kills.Green = child.Path("kills.green").Data().(float64)
+	retVal.Kills.Red, ok = child.Path("kills.red").Data().(float64)
+	retVal.Kills.Blue, ok = child.Path("kills.blue").Data().(float64)
+	retVal.Kills.Green, ok = child.Path("kills.green").Data().(float64)
 
+	if !ok {
+		log.Fatal("No data to parse. ")
+		log.Fatal(child)
+	}
 	return retVal
 }
 
@@ -340,7 +344,7 @@ func GetWWWStats(gw2 Gw2Api, world string) [5]GW2WvWvWStats {
 	if err != nil {
 		log.Fatal("error code:", err, "\n", jsonParsed.String())
 	}
-	//fmt.Println(jsonParsed.String())
+	fmt.Println(jsonParsed.StringIndent("", "  "))
 	//fmt.Printf("key: %v,value: %v\n", 0, jsonParsed)
 	item = extractWvWvWStats(jsonParsed)
 	item.Name = "Total"
