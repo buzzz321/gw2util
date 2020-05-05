@@ -1,6 +1,7 @@
 package gw2util
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -10,6 +11,8 @@ import (
 
 	"github.com/Jeffail/gabs"
 )
+
+var gw2ApiError = []byte("\"text\": \"ErrInternal\"")
 
 // GW2WvWvWStats is struct contains all kill and death on a border.
 // ID is border id
@@ -150,12 +153,34 @@ func doRestQuery(URL string) ([]byte, error) {
 func QueryAnet(gw2 Gw2Api, command string, paramName string, paramValue string) ([]byte, error) {
 	URL := fmt.Sprintf("%s%s%s%s%s%s", gw2.BaseURL, command, "?", paramName, "=", paramValue)
 	//fmt.Println("Url: ", URL)
-	return doRestQuery(URL)
+	retry := false
+	var queryRes []byte
+	var err error
+	tries := 0
+	for !retry || tries > 10 {
+		queryRes, err = doRestQuery(URL)
+		if !bytes.Contains(queryRes, gw2ApiError) {
+			retry = true
+		}
+		tries++
+	}
+	return queryRes, err
 }
 
 // QueryAnetAuth send web request to anet that require access token
 func QueryAnetAuth(gw2 Gw2Api, command string) ([]byte, error) {
 	URL := fmt.Sprintf("%s%s%s%s%s", gw2.BaseURL, command, "?access_token=", gw2.Key, "&page=0")
 
-	return doRestQuery(URL)
+	retry := false
+	var queryRes []byte
+	var err error
+	tries := 0
+	for !retry || tries > 10 {
+		queryRes, err = doRestQuery(URL)
+		if !bytes.Contains(queryRes, gw2ApiError) {
+			retry = true
+		}
+		tries++
+	}
+	return queryRes, err
 }
