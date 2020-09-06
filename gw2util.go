@@ -61,6 +61,13 @@ type AccountCache struct {
 	age          map[string]int64
 }
 
+// WWWScore contains the current score in matchup
+type WWWScore struct {
+	Red   int64
+	Blue  int64
+	Green int64
+}
+
 var accountCache = AccountCache{accountCache: make(map[string]*gabs.Container), age: make(map[string]int64)}
 var charCache = CharacterCache{charactersCache: make(map[string]*gabs.Container), age: make(map[string]int64)}
 
@@ -362,6 +369,33 @@ func GetWWWStats(gw2 Gw2Api, world string) [5]GW2WvWvWStats {
 		retVal[key+1] = extractWvWvWStats(child)
 	}
 
+	return retVal
+}
+
+// GetWvWvWScore Get current score in www
+func GetWvWvWScore(gw2 Gw2Api, world string) WWWScore {
+	var retVal WWWScore
+	var body []byte
+	var err error
+	for retries := 0; retries < 5; retries++ {
+		body, err = QueryAnet(gw2, "wvw/matches/scores", "world", world)
+		if err == nil {
+			break
+		}
+		log.Printf("No data back retry number %d\n", retries+1)
+		time.Sleep(100 * time.Millisecond)
+	}
+	jsonParsed, err := gabs.ParseJSON(body)
+
+	if err != nil {
+		log.Fatal("error code:", err, "\n", jsonParsed.String())
+	}
+	//values := jsonParsed.S("scores").Children()
+
+	//fmt.Println(values)
+	retVal.Red = int64(jsonParsed.Path("scores.red").Data().(float64))
+	retVal.Blue = int64(jsonParsed.Path("scores.blue").Data().(float64))
+	retVal.Green = int64(jsonParsed.Path("scores.green").Data().(float64))
 	return retVal
 }
 
