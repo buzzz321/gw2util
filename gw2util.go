@@ -62,7 +62,7 @@ type AccountCache struct {
 }
 
 // WWWScore contains the current score in matchup
-type WWWScore struct {
+type WWWVictoryPoints struct {
 	Red   int64
 	Blue  int64
 	Green int64
@@ -372,13 +372,13 @@ func GetWWWStats(gw2 Gw2Api, world string) [5]GW2WvWvWStats {
 	return retVal
 }
 
-// GetWvWvWScore Get current score in www
-func GetWvWvWScore(gw2 Gw2Api, world string) WWWScore {
-	var retVal WWWScore
+// GetWvWvWVictoryPoints Get current score in www
+func GetWvWvWVictoryPoints(gw2 Gw2Api, world string) WWWVictoryPoints {
+	var retVal WWWVictoryPoints
 	var body []byte
 	var err error
 	for retries := 0; retries < 5; retries++ {
-		body, err = QueryAnet(gw2, "wvw/matches/scores", "world", world)
+		body, err = QueryAnet(gw2, "wvw/matches/victory_points", "world", world)
 		if err == nil {
 			break
 		}
@@ -393,9 +393,9 @@ func GetWvWvWScore(gw2 Gw2Api, world string) WWWScore {
 	//values := jsonParsed.S("scores").Children()
 
 	//fmt.Println(values)
-	retVal.Red = int64(jsonParsed.Path("scores.red").Data().(float64))
-	retVal.Blue = int64(jsonParsed.Path("scores.blue").Data().(float64))
-	retVal.Green = int64(jsonParsed.Path("scores.green").Data().(float64))
+	retVal.Red = int64(jsonParsed.Path("victory_points.red").Data().(float64))
+	retVal.Blue = int64(jsonParsed.Path("victory_points.blue").Data().(float64))
+	retVal.Green = int64(jsonParsed.Path("victory_points.green").Data().(float64))
 	return retVal
 }
 
