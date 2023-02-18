@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Jeffail/gabs"
+	"github.com/Jeffail/gabs/v2"
 )
 
 // Gw2Api data used to access the json api.
@@ -155,7 +155,7 @@ func FindItem(gw2 Gw2Api, charName string, item string) []*GW2Item {
 // Tries to find a guild wars 2 item from item name or item detail.type
 func findItem(itemArr *gabs.Container, itemName string) []*GW2Item {
 	var retVal []*GW2Item
-	items, _ := itemArr.Children()
+	items := itemArr.Children()
 
 	for _, item := range items {
 		if strings.Contains(strings.ToLower(item.Search("name").String()), strings.ToLower(itemName)) ||
@@ -187,7 +187,7 @@ func GetItems(gw2 Gw2Api, Ids []uint64) *gabs.Container {
 func GetItemIdsFromBags(chars *gabs.Container, charName string) []uint64 {
 	var retVal []uint64
 	//fmt.Println(charName)
-	children, _ := chars.Children()
+	children := chars.Children()
 	for _, char := range children {
 		if strings.Contains(strings.ToLower(char.S("name").String()), strings.ToLower(charName)) {
 			items := char.Path("bags.inventory.id")
@@ -201,7 +201,7 @@ func GetItemIdsFromBags(chars *gabs.Container, charName string) []uint64 {
 
 func getCharacterNames(chars *gabs.Container) []string {
 	var retVal []string
-	children, _ := chars.Search("name").Children()
+	children := chars.Search("name").Children()
 
 	for _, char := range children {
 		retVal = append(retVal, strings.Trim(char.String(), "\""))
@@ -358,9 +358,9 @@ func GetWWWStats(gw2 Gw2Api, world string) [5]GW2WvWvWStats {
 
 	retVal[0] = item
 
-	values, err := jsonParsed.S("maps").Children()
+	values := jsonParsed.S("maps").Children()
 
-	if err != nil {
+	if values == nil {
 		log.Fatal("error code:", err, "\n", jsonParsed.String())
 	}
 	fmt.Println(len(values))
@@ -408,7 +408,7 @@ func GetWorlds(gw2 Gw2Api, worlds string) WorldNames {
 	dec.UseNumber()
 	jsonParsed, _ := gabs.ParseJSONDecoder(dec)
 
-	items, _ := jsonParsed.Children()
+	items := jsonParsed.Children()
 	for _, item := range items {
 		key, _ := item.Path("id").Data().(json.Number).Int64()
 		retVal.WorldName[key] = item.Path("name").Data().(string)
@@ -426,7 +426,7 @@ func GetWvWvWColours(gw2 Gw2Api, worldID string) WorldColours {
 	dec.UseNumber()
 	jsonParsed, _ := gabs.ParseJSONDecoder(dec)
 
-	items, _ := jsonParsed.S("worlds").ChildrenMap()
+	items := jsonParsed.S("worlds").ChildrenMap()
 	for colour, id := range items {
 		//key, _ := item.Path("id").Data().(json.Number).Int64()
 		//fmt.Printf("key=%v value=%v\n", id, colour)
